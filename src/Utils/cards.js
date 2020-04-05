@@ -100,16 +100,18 @@ export const getDeck = (shuffle = true, withJokers = false) => {
     return deck
 }
 
-export const getAllowedCards = lastPlayedCard => {
+export const getAllowedCards = (lastPlayedCard, isPickupInPlay) => {
     const allowedCards = []
 
-    if (pickupCards.includes(lastPlayedCard.id)) {
-        // pickup cards
+    if (isPickupInPlay) {
         pickupCards.map(cardID => allowedCards.push(cardID))
     } else if (lastPlayedCard.value === 12) {
         // queens
         values.map(value => {
             allowedCards.push(cardID(value, lastPlayedCard.suit))
+        })
+        suits.map(suit => {
+            allowedCards.push(cardID(12, suit))
         })
     } else {
         // regular values

@@ -7,21 +7,10 @@ const App = () => {
     const [deck, setDeck] = useState(getDeck())
     const [hand, setHand] = useState([])
     const [cardsPlayed, setCardsPlayed] = useState([])
-    const [lastPlayedCard, setLastPlayedCard] = useState({})
     const [cardsAllowedIDs, setCardsAllowedIDs] = useState([])
     const [pickupAmount, setPickupAmount] = useState(1)
     const [isPickupInPlay, setIsPickupInPlay] = useState(false)
     const [isRunInPlay, setIsRunInPlay] = useState(false)
-
-    const updateCardsAllowed = () => {
-        if (cardsPlayed.length) {
-            const lastPlayedCard = cardsPlayed[cardsPlayed.length - 1]
-            const updatedCardsAllowedIDs = getAllowedCards(lastPlayedCard)
-            setCardsAllowedIDs(updatedCardsAllowedIDs)
-            return
-        }
-        console.log('Could not update allowed cards', cardsPlayed.length)
-    }
 
     const deal = n => {
         const dealtCards = deck.slice(0, n)
@@ -44,22 +33,46 @@ const App = () => {
             const updatedHand = hand.filter(card => {
                 return card.id !== playedCardID
             })
+            setHand(updatedHand)
             // transfer to played cards
             const playedCard = hand.filter(card => {
                 return card.id === playedCardID
             })
             const updatedCardsPlayed = cardsPlayed.concat(playedCard)
+            setCardsPlayed(updatedCardsPlayed)
             // add on any pickups
             const newPickupAmount = pickupAmount + playedCard[0].pickupAmount
-            setHand(updatedHand)
-            setCardsPlayed(updatedCardsPlayed)
             setPickupAmount(newPickupAmount)
-            setLastPlayedCard(playedCard[0])
+            // set inPlay status
+            playedCard[0].pickupAmount > 0
+                ? setIsPickupInPlay(true)
+                : setIsPickupInPlay(false)
+            setIsRunInPlay(true)
         }
         console.log('CANNOT PLAY THAT CARD!')
     }
 
+    const updateCardsAllowed = () => {
+        if (cardsPlayed.length) {
+            const lastPlayedCard = cardsPlayed[cardsPlayed.length - 1]
+            const updatedCardsAllowedIDs = getAllowedCards(
+                lastPlayedCard,
+                isPickupInPlay,
+                isRunInPlay
+            )
+            setCardsAllowedIDs(updatedCardsAllowedIDs)
+            return
+        }
+        console.log('Could not update allowed cards', cardsPlayed.length)
+    }
+
+    const resetPickupAmount = () => {
+        if (!isPickupInPlay) setPickupAmount(1)
+        console.log('reset pickup amount to', 1)
+    }
+
     useEffect(updateCardsAllowed, [cardsPlayed])
+    useEffect(resetPickupAmount, [isPickupInPlay])
 
     return (
         <div className="App">
@@ -75,6 +88,7 @@ const App = () => {
             ))}
             <br />
             <button onClick={() => pickup(pickupAmount)}>PICK UP</button>
+            <button onClick={() => setIsRunInPlay(false)}>END GO</button>
             <br />
             <h3>Cards Played</h3>
             {cardsPlayed.map(card => (
