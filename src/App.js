@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import './App.css'
 import { getDeck, getAllowedCards } from './Utils/cards'
 import Card from './Components/Card'
+import { db } from './firebase'
 
 /*
 TODO:
@@ -31,7 +32,7 @@ TODO:
 */
 
 const App = () => {
-    const [deck, setDeck] = useState(getDeck())
+    const [deck, setDeck] = useState(getDeck().concat(getDeck()))
     const [hand, setHand] = useState([])
     const [cardsPlayed, setCardsPlayed] = useState([])
     const [aceChangedSuit, setAceChangedSuit] = useState('')
@@ -41,6 +42,16 @@ const App = () => {
     const [isRunInPlay, setIsRunInPlay] = useState(false)
     const [isQueenInPlay, setIsQueenInPlay] = useState(false)
     const [queenMultiplier, setQueenMultiplier] = useState(1)
+
+    // set state in Firebase
+    // https://firebase.google.com/docs/firestore/query-data/get-data
+    useEffect(() => {
+        db.collection('games')
+            .doc('WfF19APDbocNLq9IEznI')
+            .update({
+                deck: getDeck()
+            })
+    }, [])
 
     const deal = n => {
         const dealtCards = deck.slice(0, n)
@@ -86,6 +97,9 @@ const App = () => {
         lastPlayedCard.value === 12
             ? setIsQueenInPlay(true)
             : setIsQueenInPlay(false)
+        lastPlayedCard.value === 1
+            ? setAceChangedSuit(lastPlayedCard.suit)
+            : setAceChangedSuit(null)
         setIsRunInPlay(true)
     }
 
@@ -149,9 +163,11 @@ const App = () => {
             </button>
             <button onClick={() => console.log(cardsAllowedIDs)}>START</button>
             <h3>Cards Played</h3>
-            {cardsPlayed.map(card => (
-                <Card card={card} callback={playCard} />
-            ))}
+            {cardsPlayed
+                .slice(cardsPlayed.length - 1, cardsPlayed.length)
+                .map(card => (
+                    <Card card={card} callback={playCard} />
+                ))}
             <h3>Your Hand</h3>
             {hand.map(card => (
                 <Card card={card} callback={playCard} isInHand={true} />
