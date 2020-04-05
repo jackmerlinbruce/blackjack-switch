@@ -16,3 +16,14 @@
     background-color: rgb(196, 196, 196);
     cursor: pointer;
 }
+.state * {
+    display: inline;
+    padding: 20px;
+    opacity: 0.4;
+}
+.state p.true {
+    color: green;
+}
+.state p.false {
+    color: red;
+}

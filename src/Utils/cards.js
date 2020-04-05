@@ -100,11 +100,38 @@ export const getDeck = (shuffle = true, withJokers = false) => {
     return deck
 }
 
-export const getAllowedCards = (lastPlayedCard, isPickupInPlay) => {
+export const getAllowedCards = (
+    lastPlayedCard,
+    isPickupInPlay,
+    isRunInPlay
+) => {
     const allowedCards = []
-
-    if (isPickupInPlay) {
+    if (isRunInPlay) {
+        // same value of different suit
+        suits.forEach(suit => {
+            allowedCards.push(cardID(lastPlayedCard.value, suit))
+        })
+        // adjecent values in same suit
+        allowedCards.push(cardID(lastPlayedCard.value + 1, lastPlayedCard.suit))
+        allowedCards.push(cardID(lastPlayedCard.value - 1, lastPlayedCard.suit))
+        // do you want to stack pickup cards after your run?
+        if (isPickupInPlay) {
+            pickupCards.map(cardID => allowedCards.push(cardID))
+        }
+        // do you want to do a queenie after your run?
+        if (lastPlayedCard.value === 12) {
+            // queens
+            values.map(value => {
+                allowedCards.push(cardID(value, lastPlayedCard.suit))
+            })
+            suits.map(suit => {
+                allowedCards.push(cardID(12, suit))
+            })
+        }
+        return allowedCards
+    } else if (isPickupInPlay & !isRunInPlay) {
         pickupCards.map(cardID => allowedCards.push(cardID))
+        return allowedCards
     } else if (lastPlayedCard.value === 12) {
         // queens
         values.map(value => {
@@ -113,6 +140,7 @@ export const getAllowedCards = (lastPlayedCard, isPickupInPlay) => {
         suits.map(suit => {
             allowedCards.push(cardID(12, suit))
         })
+        return allowedCards
     } else {
         // regular values
         values.map(value => {
@@ -126,9 +154,8 @@ export const getAllowedCards = (lastPlayedCard, isPickupInPlay) => {
         suits.map(suit => {
             allowedCards.push(cardID(1, suit))
         })
+        return allowedCards
     }
 
     console.log('allowedCards', allowedCards)
-
-    return allowedCards
 }
