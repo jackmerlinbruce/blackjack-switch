@@ -77,7 +77,7 @@ const App = () => {
         console.log('updatedDeck', updatedDeck.length)
         console.log('state', state)
         setState({ ...state, deck: updatedDeck, dealtCards: dealtCards }) // why doesn't this work?
-        return
+        return dealtCards
     }
 
     const pickup = n => {
