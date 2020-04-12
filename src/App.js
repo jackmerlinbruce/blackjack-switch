@@ -32,57 +32,77 @@ TODO:
 */
 
 const App = () => {
-    const [deck, setDeck] = useState(getDeck().concat(getDeck()))
-    const [hand, setHand] = useState([])
-    const [cardsPlayed, setCardsPlayed] = useState([])
+    // const [deck, setDeck] = useState(getDeck())
+    // const [hand, setHand] = useState([])
+    // const [cardsPlayed, setCardsPlayed] = useState([])
     const [aceChangedSuit, setAceChangedSuit] = useState('')
-    const [cardsAllowedIDs, setCardsAllowedIDs] = useState([])
+    // const [cardsAllowedIDs, setCardsAllowedIDs] = useState([])
     const [pickupAmount, setPickupAmount] = useState(1)
     const [isPickupInPlay, setIsPickupInPlay] = useState(false)
     const [isRunInPlay, setIsRunInPlay] = useState(false)
     const [isQueenInPlay, setIsQueenInPlay] = useState(false)
     const [queenMultiplier, setQueenMultiplier] = useState(1)
 
+    const [state, setState] = useState({
+        deck: getDeck(),
+        dealtCards: [],
+        hand: [],
+        cardsPlayed: [],
+        cardsAllowedIDs: [],
+        fname: 'jack'
+    })
+
+    useEffect(
+        () =>
+            console.log(
+                'hand ' + state.hand.length,
+                'deck ' + state.deck.length
+            ),
+        [state.deck]
+    )
+
     // set state in Firebase
     // https://firebase.google.com/docs/firestore/query-data/get-data
-    useEffect(() => {
-        db.collection('games')
-            .doc('WfF19APDbocNLq9IEznI')
-            .update({
-                deck: getDeck()
-            })
-    }, [])
+    // useEffect(() => {
+    //     db.collection('games')
+    //         .doc('WfF19APDbocNLq9IEznI')
+    //         .update({
+    //             deck: getDeck()
+    //         })
+    // }, [])
 
     const deal = n => {
-        const dealtCards = deck.slice(0, n)
-        const updatedDeck = deck.slice(n, deck.length)
-        setDeck(updatedDeck)
-        console.log('Dealt', n, 'cards', dealtCards)
-        console.log('Deck is now', deck.length)
-        return dealtCards
+        const dealtCards = state.deck.slice(0, n)
+        const updatedDeck = state.deck.slice(n, state.deck.length)
+        console.log('updatedDeck', updatedDeck.length)
+        console.log('state', state)
+        setState({ ...state, deck: updatedDeck, dealtCards: dealtCards }) // why doesn't this work?
+        return
     }
 
     const pickup = n => {
         const pickupCards = n > 1 ? deal(n - 1) : deal(n)
-        const updatedHand = hand.concat(pickupCards)
-        setHand(updatedHand)
+        const updatedHand = [...state.hand, ...pickupCards]
+        setState({ ...state, fname: Math.random(), hand: updatedHand })
         setPickupAmount(1)
         setIsPickupInPlay(false)
     }
 
     const playCard = playedCardID => {
-        if (cardsAllowedIDs.includes(playedCardID)) {
+        if (state.cardsAllowedIDs.includes(playedCardID)) {
             // remove card from hand
-            const updatedHand = hand.filter(card => {
+            const updatedHand = state.hand.filter(card => {
                 return card.id !== playedCardID
             })
-            setHand(updatedHand)
+            setState({ ...state, hand: updatedHand })
             // transfer to played cards
-            const playedCard = hand.filter(card => {
+            const playedCard = state.hand.filter(card => {
                 return card.id === playedCardID
             })
-            const updatedCardsPlayed = cardsPlayed.concat(playedCard)
-            setCardsPlayed(updatedCardsPlayed)
+            const updatedCardsPlayed = state.cardsPlayed.concat(playedCard)
+
+            setState({ ...state, cardsPlayed: updatedCardsPlayed })
+            // setCardsPlayed(updatedCardsPlayed)
             setInPlayStatus(playedCard[0])
             addOnPickups(playedCard[0])
             return
@@ -112,18 +132,19 @@ const App = () => {
     }
 
     const updateCardsAllowed = () => {
-        if (cardsPlayed.length) {
-            const lastPlayedCard = cardsPlayed[cardsPlayed.length - 1]
+        if (state.cardsPlayed.length) {
+            const lastPlayedCard =
+                state.cardsPlayed[state.cardsPlayed.length - 1]
             const updatedCardsAllowedIDs = getAllowedCards(
                 lastPlayedCard,
                 isPickupInPlay,
                 isRunInPlay,
                 aceChangedSuit
             )
-            setCardsAllowedIDs(updatedCardsAllowedIDs)
+            setState({ ...state, cardsAllowedIDs: updatedCardsAllowedIDs })
             return
         }
-        console.log('Could not update allowed cards', cardsPlayed.length)
+        console.log('Could not update allowed cards', state.cardsPlayed.length)
     }
 
     const updateQueenMultiplier = () => {
@@ -133,10 +154,14 @@ const App = () => {
             : setQueenMultiplier(1)
     }
 
-    useEffect(updateCardsAllowed, [cardsPlayed, isPickupInPlay, isRunInPlay])
-    useEffect(updateQueenMultiplier, [isQueenInPlay, cardsPlayed])
+    useEffect(updateCardsAllowed, [
+        state.cardsPlayed,
+        isPickupInPlay,
+        isRunInPlay
+    ])
+    useEffect(updateQueenMultiplier, [isQueenInPlay, state.cardsPlayed])
     useEffect(() => {
-        document.title = deck.length
+        document.title = state.deck.length
     })
 
     return (
@@ -157,25 +182,43 @@ const App = () => {
                 </p>
             </div>
             <h1>Blackjack</h1>
-            <button onClick={() => setHand(deal(7))}>DEAL HAND</button>
-            <button onClick={() => setCardsPlayed(deal(1))}>
+
+            <button
+                onClick={() => {
+                    let updatedHand = deal(7)
+                    setState({ ...state, hand: updatedHand })
+                    // setState({ ...state, hand: updatedHand })
+                }}
+            >
+                DEAL HAND
+            </button>
+
+            <button
+                onClick={() => setState({ ...state, cardsPlayed: deal(1) })}
+            >
                 DEAL FIRST CARD
             </button>
-            <button onClick={() => console.log(cardsAllowedIDs)}>START</button>
+
+            <button onClick={() => console.log(state.cardsAllowedIDs, state)}>
+                START
+            </button>
+
             <h3>Cards Played</h3>
-            {cardsPlayed
-                .slice(cardsPlayed.length - 1, cardsPlayed.length)
+            {state.cardsPlayed
+                .slice(state.cardsPlayed.length - 1, state.cardsPlayed.length)
                 .map(card => (
                     <Card card={card} callback={playCard} />
                 ))}
             <h3>Your Hand</h3>
-            {hand.map(card => (
+            {state.hand.map(card => (
                 <Card card={card} callback={playCard} isInHand={true} />
             ))}
             <br />
+
             <button onClick={() => pickup(pickupAmount)} disabled={isRunInPlay}>
                 PICK UP
             </button>
+
             <button onClick={() => setIsRunInPlay(false)}>END GO</button>
             <br />
         </div>
