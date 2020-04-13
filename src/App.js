@@ -90,6 +90,7 @@ const App = () => {
             })
             dispatch({ type: 'PLAY_CARDS', payload: playedCards })
             dispatch({ type: 'UPDATE_IN_PLAY_STATUS', payload: playedCards })
+            dispatch({ type: 'HANDLE_PICKUPS', payload: playedCards })
 
             setInPlayStatus(playedCards[0])
             addOnPickups(playedCards[0])
@@ -139,6 +140,7 @@ const App = () => {
     }
 
     const updateQueenMultiplier = () => {
+        dispatch({ type: 'UPDATE_QUEEN_MULTIPLIER' })
         const newQueenMultiplier = queenMultiplier * 2
         isQueenInPlay
             ? setQueenMultiplier(newQueenMultiplier)
@@ -148,7 +150,7 @@ const App = () => {
     useEffect(updateCardsAllowed, [
         state.played,
         state.isPickupInPlay,
-        isRunInPlay
+        state.isRunInPlay
     ])
     useEffect(updateQueenMultiplier, [state.isQueenInPlay, state.played])
     useEffect(() => {
@@ -158,7 +160,7 @@ const App = () => {
     return (
         <div className="App">
             <div className={'state'}>
-                <p>Pickup Amount: {pickupAmount}</p>
+                <p>Pickup Amount: {state.pickupAmount}</p>
                 <p className={`${state.isPickupInPlay}`}>
                     Pickup In Play?: {`${state.isPickupInPlay}`}
                 </p>
@@ -168,8 +170,8 @@ const App = () => {
                 <p className={`${state.isQueenInPlay}`}>
                     Queen In Play?: {`${state.isQueenInPlay}`}
                 </p>
-                <p className={`${queenMultiplier}`}>
-                    Queen Multiplier: {`${queenMultiplier}`}
+                <p className={`${state.queenMultiplier}`}>
+                    Queen Multiplier: {`${state.queenMultiplier}`}
                 </p>
             </div>
             <h1>Blackjack</h1>
@@ -194,7 +196,9 @@ const App = () => {
             >
                 DEAL FIRST CARD
             </button>
-            <button onClick={() => console.log(cardsAllowedIDs)}>START</button>
+            <button onClick={() => console.log(state.cardsAllowedIDs)}>
+                START
+            </button>
             <h3>Cards Played</h3>
             {state.played
                 .slice(state.played.length - 1, state.played.length)
@@ -209,10 +213,16 @@ const App = () => {
             <button onClick={() => pickup(pickupAmount)} disabled={isRunInPlay}>
                 PICK UP
             </button>
-            <button onClick={() => setIsRunInPlay(false)}>END GO</button>
+            <button
+                onClick={() => {
+                    setIsRunInPlay(false)
+                    dispatch({ type: 'END_RUN' })
+                }}
+            >
+                END GO
+            </button>
             <br />
         </div>
     )
 }
-
 export default App
