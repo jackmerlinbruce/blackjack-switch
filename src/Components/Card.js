@@ -14,6 +14,7 @@ const Card = props => {
                 src={
                     process.env.PUBLIC_URL + 'Cards/' + props.card.name + '.png'
                 }
+                alt="card"
             ></img>
         </div>
     )

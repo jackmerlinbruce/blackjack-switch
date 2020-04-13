@@ -54,8 +54,8 @@ export const getDeck = (shuffle = true, withJokers = false) => {
     const deck = []
 
     // generate standard deck
-    suits.map(suit => {
-        values.map(value => {
+    suits.forEach(suit => {
+        values.forEach(value => {
             deck.push({
                 id: cardID(value, suit),
                 name: cardName(suit, value),
@@ -68,7 +68,7 @@ export const getDeck = (shuffle = true, withJokers = false) => {
     })
 
     // add pickup amounts
-    deck.map(card => {
+    deck.forEach(card => {
         if (pickupCards.includes(card.id)) {
             card.pickupAmount = pickupAmounts[card.id]
         }
@@ -116,46 +116,44 @@ export const getAllowedCards = (
         allowedCards.push(cardID(lastPlayedCard.value - 1, lastPlayedCard.suit))
         // do you want to stack pickup cards after your run?
         if (isPickupInPlay) {
-            pickupCards.map(cardID => allowedCards.push(cardID))
+            pickupCards.forEach(cardID => allowedCards.push(cardID))
         }
         // do you want to do a queenie after your run?
         if (lastPlayedCard.value === 12) {
             // queens
-            values.map(value => {
+            values.forEach(value => {
                 allowedCards.push(cardID(value, lastPlayedCard.suit))
             })
-            suits.map(suit => {
+            suits.forEach(suit => {
                 allowedCards.push(cardID(12, suit))
             })
         }
         return allowedCards
     } else if (isPickupInPlay & !isRunInPlay) {
-        pickupCards.map(cardID => allowedCards.push(cardID))
+        pickupCards.forEach(cardID => allowedCards.push(cardID))
         return allowedCards
     } else if (lastPlayedCard.value === 12) {
         // queens
-        values.map(value => {
+        values.forEach(value => {
             allowedCards.push(cardID(value, lastPlayedCard.suit))
         })
-        suits.map(suit => {
+        suits.forEach(suit => {
             allowedCards.push(cardID(12, suit))
         })
         return allowedCards
     } else {
         // regular values
-        values.map(value => {
+        values.forEach(value => {
             allowedCards.push(cardID(value, lastPlayedCard.suit))
         })
         // regular suits
-        suits.map(suit => {
+        suits.forEach(suit => {
             allowedCards.push(cardID(lastPlayedCard.value, suit))
         })
         // aces
-        suits.map(suit => {
+        suits.forEach(suit => {
             allowedCards.push(cardID(1, suit))
         })
         return allowedCards
     }
-
-    console.log('allowedCards', allowedCards)
 }
