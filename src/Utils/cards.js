@@ -106,7 +106,9 @@ export const getAllowedCards = (
     isRunInPlay
 ) => {
     const allowedCards = []
+    console.log('finding cards', isRunInPlay)
     if (isRunInPlay) {
+        console.log('run in play')
         // same value of different suit
         suits.forEach(suit => {
             allowedCards.push(cardID(lastPlayedCard.value, suit))

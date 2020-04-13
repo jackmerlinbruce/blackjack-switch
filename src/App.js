@@ -32,6 +32,8 @@ TODO:
         The entire deck?
 */
 
+const GAME_ID = 'WfF19APDbocNLq9IEznI'
+
 const initState = {
     deck: getDeck(),
     hand: [],
@@ -46,26 +48,10 @@ const initState = {
 }
 
 const App = () => {
-    const [isAceInPlay, setisAceInPlay] = useState('')
-    const [cardsAllowedIDs, setCardsAllowedIDs] = useState([])
-    const [pickupAmount, setPickupAmount] = useState(1)
-    const [isPickupInPlay, setIsPickupInPlay] = useState(false)
-    const [isRunInPlay, setIsRunInPlay] = useState(false)
-    const [isQueenInPlay, setIsQueenInPlay] = useState(false)
-    const [queenMultiplier, setQueenMultiplier] = useState(1)
-
     const [state, dispatch] = useReducer(stateReducer, initState)
-    console.log('dispatch?', state.cardsAllowedIDs === cardsAllowedIDs)
 
-    // // set state in Firebase
-    // // https://firebase.google.com/docs/firestore/query-data/get-data
-    // useEffect(() => {
-    //     db.collection('games')
-    //         .doc('WfF19APDbocNLq9IEznI')
-    //         .update({
-    //             deck: getDeck()
-    //         })
-    // }, [])
+    // set state in Firebase
+    // https://firebase.google.com/docs/firestore/query-data/get-data
 
     const deal = n => {
         const dealtCards = state.deck.slice(0, n)
@@ -76,14 +62,13 @@ const App = () => {
 
     const pickup = n => {
         const pickupCards = n > 1 ? deal(n - 1) : deal(n)
+        console.log('pickupCards', pickupCards)
         dispatch({ type: 'ADD_TO_HAND', payload: pickupCards })
         dispatch({ type: 'RESET_PICKUP' })
-        setPickupAmount(1)
-        setIsPickupInPlay(false)
     }
 
     const playCard = playedCardID => {
-        if (cardsAllowedIDs.includes(playedCardID)) {
+        if (state.cardsAllowedIDs.includes(playedCardID)) {
             dispatch({ type: 'REMOVE_FROM_HAND', payload: playedCardID })
             const playedCards = state.hand.filter(card => {
                 return card.id === playedCardID
@@ -91,45 +76,20 @@ const App = () => {
             dispatch({ type: 'PLAY_CARDS', payload: playedCards })
             dispatch({ type: 'UPDATE_IN_PLAY_STATUS', payload: playedCards })
             dispatch({ type: 'HANDLE_PICKUPS', payload: playedCards })
-
-            setInPlayStatus(playedCards[0])
-            addOnPickups(playedCards[0])
             return
         }
         console.log('CANNOT PLAY THAT CARD!')
     }
 
-    const setInPlayStatus = lastPlayedCard => {
-        lastPlayedCard.pickupAmount > 0
-            ? setIsPickupInPlay(true)
-            : setIsPickupInPlay(false)
-        lastPlayedCard.value === 12
-            ? setIsQueenInPlay(true)
-            : setIsQueenInPlay(false)
-        lastPlayedCard.value === 1
-            ? setisAceInPlay(lastPlayedCard.suit)
-            : setisAceInPlay(null)
-        setIsRunInPlay(true)
-    }
-
-    const addOnPickups = lastPlayedCard => {
-        let x = lastPlayedCard.pickupAmount * queenMultiplier
-        const newPickupAmount = ['h_11', 'd_11'].includes(lastPlayedCard.id)
-            ? 1
-            : pickupAmount + x
-        setPickupAmount(newPickupAmount)
-    }
-
     const updateCardsAllowed = () => {
+        // move to be just an effect / all in reducer
         if (state.played.length) {
             const lastPlayedCard = state.played[state.played.length - 1]
             const updatedCardsAllowedIDs = getAllowedCards(
                 lastPlayedCard,
-                isPickupInPlay,
-                isRunInPlay,
-                isAceInPlay
+                state.isPickupInPlay,
+                state.isRunInPlay
             )
-            setCardsAllowedIDs(updatedCardsAllowedIDs)
             dispatch({
                 type: 'UPDATE_CARDS_ALLOWED_IDS',
                 payload: updatedCardsAllowedIDs
@@ -139,12 +99,16 @@ const App = () => {
         console.log('Could not update allowed cards', state.played.length)
     }
 
-    const updateQueenMultiplier = () => {
-        dispatch({ type: 'UPDATE_QUEEN_MULTIPLIER' })
-        const newQueenMultiplier = queenMultiplier * 2
-        isQueenInPlay
-            ? setQueenMultiplier(newQueenMultiplier)
-            : setQueenMultiplier(1)
+    const updateFirebase = () => {
+        db.collection('games')
+            .doc(GAME_ID)
+            .get()
+            .then(res => console.log(res.data()))
+        db.collection('games')
+            .doc(GAME_ID)
+            .set({ state: state })
+            .then(() => console.log('Document successfully written!'))
+            .catch(error => console.error('Error writing document: ', error))
     }
 
     useEffect(updateCardsAllowed, [
@@ -152,10 +116,14 @@ const App = () => {
         state.isPickupInPlay,
         state.isRunInPlay
     ])
-    useEffect(updateQueenMultiplier, [state.isQueenInPlay, state.played])
+    useEffect(() => dispatch({ type: 'UPDATE_QUEEN_MULTIPLIER' }), [
+        state.isQueenInPlay,
+        state.played
+    ])
     useEffect(() => {
         document.title = state.deck.length
     })
+    useEffect(updateFirebase)
 
     return (
         <div className="App">
@@ -210,12 +178,14 @@ const App = () => {
                 <Card card={card} callback={playCard} isInHand={true} />
             ))}
             <br />
-            <button onClick={() => pickup(pickupAmount)} disabled={isRunInPlay}>
+            <button
+                onClick={() => pickup(state.pickupAmount)}
+                disabled={state.isRunInPlay}
+            >
                 PICK UP
             </button>
             <button
                 onClick={() => {
-                    setIsRunInPlay(false)
                     dispatch({ type: 'END_RUN' })
                 }}
             >
