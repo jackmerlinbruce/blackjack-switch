@@ -1,8 +1,9 @@
-import React, { useState, useReducer, useEffect } from 'react'
+import React, { useReducer, useEffect } from 'react'
 import './App.css'
 import { getDeck, getAllowedCards } from './Utils/cards'
 import { stateReducer } from './Utils/StateReducer'
 import Card from './Components/Card'
+import StateVisualiser from './Components/StateVisualiser'
 import { db } from './firebase'
 
 /*
@@ -50,9 +51,6 @@ const initState = {
 const App = () => {
     const [state, dispatch] = useReducer(stateReducer, initState)
 
-    // set state in Firebase
-    // https://firebase.google.com/docs/firestore/query-data/get-data
-
     const deal = n => {
         const dealtCards = state.deck.slice(0, n)
         const updatedDeck = state.deck.slice(n, state.deck.length)
@@ -62,7 +60,6 @@ const App = () => {
 
     const pickup = n => {
         const pickupCards = n > 1 ? deal(n - 1) : deal(n)
-        console.log('pickupCards', pickupCards)
         dispatch({ type: 'ADD_TO_HAND', payload: pickupCards })
         dispatch({ type: 'RESET_PICKUP' })
     }
@@ -100,6 +97,7 @@ const App = () => {
     }
 
     const updateFirebase = () => {
+        // https://firebase.google.com/docs/firestore/query-data/get-data
         db.collection('games')
             .doc(GAME_ID)
             .get()
@@ -127,21 +125,7 @@ const App = () => {
 
     return (
         <div className="App">
-            <div className={'state'}>
-                <p>Pickup Amount: {state.pickupAmount}</p>
-                <p className={`${state.isPickupInPlay}`}>
-                    Pickup In Play?: {`${state.isPickupInPlay}`}
-                </p>
-                <p className={`${state.isRunInPlay}`}>
-                    Run In Play?: {`${state.isRunInPlay}`}
-                </p>
-                <p className={`${state.isQueenInPlay}`}>
-                    Queen In Play?: {`${state.isQueenInPlay}`}
-                </p>
-                <p className={`${state.queenMultiplier}`}>
-                    Queen Multiplier: {`${state.queenMultiplier}`}
-                </p>
-            </div>
+            <StateVisualiser state={state} />
             <h1>Blackjack</h1>
 
             <button onClick={() => dispatch({ type: 'EMPTY_DECK' })}>
