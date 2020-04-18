@@ -1,5 +1,5 @@
 import React, { useReducer, useEffect } from 'react'
-import './App.css'
+import './Game.css'
 import { getDeck, getAllowedCards } from './Utils/cards'
 import { stateReducer } from './Utils/StateReducer'
 import Card from './Components/Card'
@@ -48,7 +48,7 @@ const initState = {
     queenMultiplier: 1
 }
 
-const App = () => {
+const Game = () => {
     const [state, dispatch] = useReducer(stateReducer, initState)
 
     const deal = n => {
@@ -124,7 +124,7 @@ const App = () => {
     useEffect(updateFirebase)
 
     return (
-        <div className="App">
+        <div className="Game">
             <StateVisualiser state={state} />
             <h1>Blackjack</h1>
 
@@ -179,4 +179,4 @@ const App = () => {
         </div>
     )
 }
-export default App
+export default Game
