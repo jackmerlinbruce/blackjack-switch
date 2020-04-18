@@ -13,7 +13,7 @@
     display: inline-block;
 }
 .card img {
-    width: 50px;
+    width: 70px;
 }
 .card.inHand:hover {
     background-color: rgba(245, 245, 245, 0.253);

@@ -97,6 +97,7 @@ export const getDeck = (shuffle = true, withJokers = false) => {
         return deck
             .sort(() => 0.5 - Math.random())
             .sort(() => 0.5 - Math.random())
+            .sort(() => 0.5 - Math.random())
     }
 
     return deck

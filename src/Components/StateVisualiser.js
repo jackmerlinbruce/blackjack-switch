@@ -13,8 +13,14 @@ const StateVisualiser = props => {
             <p className={`${props.state.isQueenInPlay}`}>
                 Queen In Play?: {`${props.state.isQueenInPlay}`}
             </p>
+            <p className={`${props.state.isEightInPlay}`}>
+                Eight In Play?: {`${props.state.isQueenInPlay}`}
+            </p>
             <p className={`${props.state.queenMultiplier}`}>
                 Queen Multiplier: {`${props.state.queenMultiplier}`}
+            </p>
+            <p className={`${props.state.numEightSkips}`}>
+                Eight Skips: {`${props.state.numEightSkips}`}
             </p>
         </div>
     )

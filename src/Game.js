@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from 'react'
+import React, { useReducer, useEffect, useState } from 'react'
 import './Game.css'
 import { getDeck, getAllowedCards } from './Utils/cards'
 import { stateReducer } from './Utils/StateReducer'
@@ -10,19 +10,44 @@ const GAME_ID = 'WfF19APDbocNLq9IEznI'
 
 const initState = {
     deck: getDeck(),
-    hand: [],
     played: [],
     cardsAllowedIDs: [],
-    isAceInPlay: '',
     pickupAmount: 1,
     isPickupInPlay: false,
     isRunInPlay: false,
     isQueenInPlay: false,
-    queenMultiplier: 1
+    isAceInPlay: false,
+    isEightInPlay: false,
+    numEightSkips: 0,
+    queenMultiplier: 1,
+    Jack: [],
+    Rory: [],
+    Tilly: [],
+    Suzanne: [],
+    players: { Jack: [], Rory: [], Tilly: [], Suzanne: [] },
+    playerList: ['Jack', 'Rory', 'Tilly', 'Suzanne'],
+    currentPlayerIndex: 0,
+    currentPlayerID: ''
 }
+
+// set playerID to first player in playerList
+initState.currentPlayerID = initState.playerList[initState.currentPlayerIndex]
 
 const Game = () => {
     const [state, dispatch] = useReducer(stateReducer, initState)
+    const [isYourTurn, setIsYourTurn] = useState(false)
+
+    useEffect(() => {
+        setIsYourTurn(state.currentPlayerID === state.currentPlayerID)
+    }, [])
+
+    if (isYourTurn) {
+        console.log("It's your turn", state.currentPlayerIndex)
+        // update state as normal
+    } else {
+        console.log("It's not your turn yet", state.currentPlayerIndex)
+        // update state from Firebase state
+    }
 
     const deal = n => {
         const dealtCards = state.deck.slice(0, n)
@@ -33,14 +58,24 @@ const Game = () => {
 
     const pickup = n => {
         const pickupCards = n > 1 ? deal(n - 1) : deal(n)
-        dispatch({ type: 'ADD_TO_HAND', payload: pickupCards })
+        // dispatch({ type: 'ADD_TO_HAND', payload: pickupCards })
+        dispatch({
+            type: 'ADD_TO_HAND_OF',
+            payload: pickupCards,
+            player: state.currentPlayerID
+        })
         dispatch({ type: 'RESET_PICKUP' })
     }
 
     const playCard = playedCardID => {
         if (state.cardsAllowedIDs.includes(playedCardID)) {
-            dispatch({ type: 'REMOVE_FROM_HAND', payload: playedCardID })
-            const playedCards = state.hand.filter(card => {
+            // dispatch({ type: 'REMOVE_FROM_HAND', payload: playedCardID })
+            dispatch({
+                type: 'REMOVE_FROM_HAND_OF',
+                payload: playedCardID,
+                player: state.currentPlayerID
+            })
+            const playedCards = state[state.currentPlayerID].filter(card => {
                 return card.id === playedCardID
             })
             dispatch({ type: 'PLAY_CARDS', payload: playedCards })
@@ -81,7 +116,6 @@ const Game = () => {
             .then(() => console.log('Document successfully written!'))
             .catch(error => console.error('Error writing document: ', error))
     }
-
     useEffect(updateCardsAllowed, [
         state.played,
         state.isPickupInPlay,
@@ -89,6 +123,10 @@ const Game = () => {
     ])
     useEffect(() => dispatch({ type: 'UPDATE_QUEEN_MULTIPLIER' }), [
         state.isQueenInPlay,
+        state.played
+    ])
+    useEffect(() => dispatch({ type: 'UPDATE_EIGHT_SKIPS' }), [
+        state.isEightInPlay,
         state.played
     ])
     useEffect(() => {
@@ -99,6 +137,7 @@ const Game = () => {
     return (
         <div className="Game">
             <StateVisualiser state={state} />
+
             <h1>Blackjack</h1>
 
             <button onClick={() => dispatch({ type: 'EMPTY_DECK' })}>
@@ -106,7 +145,12 @@ const Game = () => {
             </button>
             <button
                 onClick={() => {
-                    dispatch({ type: 'ADD_TO_HAND', payload: deal(7) })
+                    // dispatch({ type: 'ADD_TO_HAND', payload: deal(7) })
+                    dispatch({
+                        type: 'ADD_TO_HAND_OF',
+                        payload: deal(7),
+                        player: state.currentPlayerID
+                    })
                 }}
             >
                 DEAL HAND
@@ -130,11 +174,11 @@ const Game = () => {
                 .map(card => (
                     <Card card={card} callback={playCard} />
                 ))}
-            <h3>Your Hand</h3>
-            {state.hand.map(card => (
-                <Card card={card} callback={playCard} isInHand={true} />
-            ))}
-            <br />
+            <h3>Hand of {state.currentPlayerID}</h3>
+            {state[state.currentPlayerID] &&
+                state[state.currentPlayerID].map(card => (
+                    <Card card={card} callback={playCard} isInHand={true} />
+                ))}
             <button
                 onClick={() => pickup(state.pickupAmount)}
                 disabled={state.isRunInPlay}
@@ -143,7 +187,7 @@ const Game = () => {
             </button>
             <button
                 onClick={() => {
-                    dispatch({ type: 'END_RUN' })
+                    dispatch({ type: 'END_GO' })
                 }}
             >
                 END GO
