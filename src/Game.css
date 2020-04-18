@@ -2,20 +2,21 @@
     text-align: center;
     margin: 0 auto;
     max-width: 1000px;
+    color: whitesmoke;
 }
 
 .card {
     padding: 5px;
     margin: 0 auto;
     /* width: 0px; */
-    background-color: rgb(243, 243, 243);
+    background-color: rgba(245, 245, 245, 0.096);
     display: inline-block;
 }
 .card img {
     width: 50px;
 }
 .card.inHand:hover {
-    background-color: rgb(196, 196, 196);
+    background-color: rgba(245, 245, 245, 0.253);
     cursor: pointer;
 }
 .state {
