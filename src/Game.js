@@ -42,7 +42,11 @@ const Game = () => {
     }, [])
 
     if (isYourTurn) {
-        console.log("It's your turn", state.currentPlayerIndex)
+        console.log(
+            state.currentPlayerIndex,
+            "It's your turn",
+            state.currentPlayerID
+        )
         // update state as normal
     } else {
         console.log("It's not your turn yet", state.currentPlayerIndex)
@@ -132,7 +136,7 @@ const Game = () => {
     useEffect(() => {
         document.title = state.deck.length
     })
-    useEffect(updateFirebase)
+    // useEffect(updateFirebase)
 
     return (
         <div className="Game">
@@ -179,6 +183,7 @@ const Game = () => {
                 state[state.currentPlayerID].map(card => (
                     <Card card={card} callback={playCard} isInHand={true} />
                 ))}
+            <br />
             <button
                 onClick={() => pickup(state.pickupAmount)}
                 disabled={state.isRunInPlay}
@@ -193,6 +198,9 @@ const Game = () => {
                 END GO
             </button>
             <br />
+            {state.playerList.map(p => (
+                <p className={`player ${p === state.currentPlayerID}`}>{p}</p>
+            ))}
         </div>
     )
 }

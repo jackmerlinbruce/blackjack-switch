@@ -63,7 +63,7 @@ export const stateReducer = (state, action) => {
             return { ...state, queenMultiplier: newQueenMultiplier }
         case 'UPDATE_EIGHT_SKIPS':
             const newNumEightSkips = state.isEightInPlay
-                ? (state.numEightSkips += 1)
+                ? (state.numEightSkips += 1) * state.queenMultiplier
                 : 0
             return { ...state, numEightSkips: newNumEightSkips }
         case 'END_GO':
