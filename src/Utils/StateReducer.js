@@ -75,7 +75,7 @@ export const stateReducer = (state, action) => {
                 state.currentPlayerIndex + state.numEightSkips >=
                 state.playerList.length - 1
                     ? 0
-                    : (state.currentPlayerIndex += 1) + state.numEightSkips
+                    : state.currentPlayerIndex + 1 + state.numEightSkips
             return {
                 ...state,
                 isRunInPlay: false,

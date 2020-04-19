@@ -1,68 +1,40 @@
-import React, { useReducer, useEffect, useState } from 'react'
+import React, { useReducer, useEffect } from 'react'
 import './Game.css'
-import { getDeck, getAllowedCards } from './Utils/cards'
+import { getAllowedCards } from './Utils/cards'
 import { stateReducer } from './Utils/StateReducer'
+import { initState } from './Utils/initState'
 import Card from './Components/Card'
 import StateVisualiser from './Components/StateVisualiser'
 import { db } from './firebase'
 
 const GAME_ID = 'WfF19APDbocNLq9IEznI'
 
-const initState = {
-    deck: getDeck(),
-    played: [],
-    cardsAllowedIDs: [],
-    pickupAmount: 1,
-    isPickupInPlay: false,
-    isRunInPlay: false,
-    isQueenInPlay: false,
-    isAceInPlay: false,
-    isEightInPlay: false,
-    numEightSkips: 0,
-    queenMultiplier: 1,
-    Jack: [],
-    Rory: [],
-    Tilly: [],
-    Suzanne: [],
-    players: { Jack: [], Rory: [], Tilly: [], Suzanne: [] },
-    playerList: ['Jack', 'Rory', 'Tilly', 'Suzanne'],
-    currentPlayerIndex: 0,
-    currentPlayerID: ''
-}
-
-// set playerID to first player in playerList
-initState.currentPlayerID = initState.playerList[initState.currentPlayerIndex]
+// const play = prompt('hello')
 
 const Game = () => {
     const [state, dispatch] = useReducer(stateReducer, initState)
-    const [isYourTurn, setIsYourTurn] = useState(false)
 
-    useEffect(() => {
-        setIsYourTurn(state.currentPlayerID === state.currentPlayerID)
-    }, [])
-
-    if (isYourTurn) {
-        console.log(
-            state.currentPlayerIndex,
-            "It's your turn",
-            state.currentPlayerID
-        )
-        // update state as normal
-    } else {
-        console.log("It's not your turn yet", state.currentPlayerIndex)
-        // update state from Firebase state
-    }
+    console.log(
+        state.currentPlayerIndex,
+        "It's your turn",
+        state.currentPlayerID
+    )
 
     const deal = n => {
+        // TODO: dealtCards returns before dispatch()
+        // has finished updating the deck, meaning with
+        // deal-on-load everyone gets the same cards
         const dealtCards = state.deck.slice(0, n)
         const updatedDeck = state.deck.slice(n, state.deck.length)
-        dispatch({ type: 'UPDATE_DECK', payload: updatedDeck })
+        dispatch({
+            type: 'UPDATE_DECK',
+            payload: updatedDeck
+        })
         return dealtCards
     }
 
     const pickup = n => {
         const pickupCards = n > 1 ? deal(n - 1) : deal(n)
-        // dispatch({ type: 'ADD_TO_HAND', payload: pickupCards })
         dispatch({
             type: 'ADD_TO_HAND_OF',
             payload: pickupCards,
@@ -73,7 +45,6 @@ const Game = () => {
 
     const playCard = playedCardID => {
         if (state.cardsAllowedIDs.includes(playedCardID)) {
-            // dispatch({ type: 'REMOVE_FROM_HAND', payload: playedCardID })
             dispatch({
                 type: 'REMOVE_FROM_HAND_OF',
                 payload: playedCardID,
@@ -82,9 +53,18 @@ const Game = () => {
             const playedCards = state[state.currentPlayerID].filter(card => {
                 return card.id === playedCardID
             })
-            dispatch({ type: 'PLAY_CARDS', payload: playedCards })
-            dispatch({ type: 'UPDATE_IN_PLAY_STATUS', payload: playedCards })
-            dispatch({ type: 'HANDLE_PICKUPS', payload: playedCards })
+            dispatch({
+                type: 'PLAY_CARDS',
+                payload: playedCards
+            })
+            dispatch({
+                type: 'UPDATE_IN_PLAY_STATUS',
+                payload: playedCards
+            })
+            dispatch({
+                type: 'HANDLE_PICKUPS',
+                payload: playedCards
+            })
             return
         }
         console.log('CANNOT PLAY THAT CARD!')
@@ -136,6 +116,16 @@ const Game = () => {
     useEffect(() => {
         document.title = state.deck.length
     })
+    // useEffect(() => {
+    //     // deal-on-load
+    //     state.playerList.forEach((p, i) => {
+    //         dispatch({
+    //             type: 'ADD_TO_HAND_OF',
+    //             payload: deal(7),
+    //             player: p
+    //         })
+    //     })
+    // }, [])
     // useEffect(updateFirebase)
 
     return (
