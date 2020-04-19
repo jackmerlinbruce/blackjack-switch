@@ -7,12 +7,8 @@ import Card from './Components/Card'
 import StateVisualiser from './Components/StateVisualiser'
 import { db } from './firebase'
 
-const GAME_ID = 'WfF19APDbocNLq9IEznI'
-
-// const play = prompt('hello')
-
-const Game = () => {
-    const [state, dispatch] = useReducer(stateReducer, initState)
+const Game = ({ playerList, GAME_ID }) => {
+    const [state, dispatch] = useReducer(stateReducer, initState(playerList))
 
     console.log(
         state.currentPlayerIndex,
