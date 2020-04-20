@@ -84,18 +84,6 @@ const Game = ({ playerList, GAME_ID }) => {
         console.log('Could not update allowed cards', state.played.length)
     }
 
-    const updateFirebase = () => {
-        // https://firebase.google.com/docs/firestore/query-data/get-data
-        db.collection('games')
-            .doc(GAME_ID)
-            .get()
-            .then(res => console.log(res.data()))
-        db.collection('games')
-            .doc(GAME_ID)
-            .set({ state: state })
-            .then(() => console.log('Document successfully written!'))
-            .catch(error => console.error('Error writing document: ', error))
-    }
     useEffect(updateCardsAllowed, [
         state.played,
         state.isPickupInPlay,
@@ -112,6 +100,7 @@ const Game = ({ playerList, GAME_ID }) => {
     useEffect(() => {
         document.title = state.deck.length
     })
+
     // useEffect(() => {
     //     // deal-on-load
     //     state.playerList.forEach((p, i) => {
@@ -122,7 +111,43 @@ const Game = ({ playerList, GAME_ID }) => {
     //         })
     //     })
     // }, [])
-    // useEffect(updateFirebase)
+
+    const syncToFirebase = () => {
+        db.collection('games')
+            .doc(GAME_ID)
+            .set({ state: state })
+            .then(() =>
+                console.log(
+                    'Firebase state successfully synced! Current player is',
+                    state.currentPlayerIndex
+                )
+            )
+            .catch(error => console.error('Error syncing to Firebase: ', error))
+    }
+
+    const syncFromFirebase = () => {
+        db.collection('games')
+            .doc(GAME_ID)
+            .get()
+            .then(res => {
+                console.log('syncing FROM firebase data', res.data())
+                dispatch({ type: 'UPDATE_STATE', payload: res.data() })
+            })
+    }
+
+    useEffect(() => {
+        if (state.currentPlayerID === sessionStorage.playerID) {
+            // if it's your turn, sync Firebase state
+            // with the local state
+            console.log("It's your turn, syncing TO Firebase")
+            syncToFirebase()
+        } else {
+            // if it ain't your turn, sync local state
+            // with the Firebase state
+            console.log('Not your turn, syncing FROM Firebase')
+            syncFromFirebase()
+        }
+    }, [state])
 
     return (
         <div className="Game">
@@ -159,11 +184,10 @@ const Game = ({ playerList, GAME_ID }) => {
                 START
             </button>
             <h3>Cards Played</h3>
-            {state.played
-                .slice(state.played.length - 1, state.played.length)
-                .map(card => (
-                    <Card card={card} callback={playCard} />
-                ))}
+            {state.played &&
+                state.played
+                    .slice(state.played.length - 1, state.played.length)
+                    .map(card => <Card card={card} callback={playCard} />)}
             <h3>Hand of {state.currentPlayerID}</h3>
             {state[state.currentPlayerID] &&
                 state[state.currentPlayerID].map(card => (

@@ -24,8 +24,16 @@ Add same suit deflectors/skippers
 King reverses pickup
 8 skips it to the next person
 Queen passes it on to the next person
-  
+
 Can you see the total value of
 Each persons hand?
 Each pickup set of cards?
 The entire deck?
+
+## Links
+
+https://www.robinwieruch.de/react-usereducer-vs-usestate
+
+https://firebase.google.com/docs/firestore/query-data/get-data
+
+https://www.valentinog.com/blog/socket-react/

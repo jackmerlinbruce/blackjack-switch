@@ -5,25 +5,32 @@ to pass to <Game players={playerList} />
 
 import React, { useState, useEffect } from 'react'
 import Game from './Game'
-import { v4 as uuid } from 'uuid'
 import socketIOClient from 'socket.io-client'
-//https://www.valentinog.com/blog/socket-react/
+import { initState } from './Utils/initState'
+import { db } from './firebase'
 
 const GAME_ID = 'WfF19APDbocNLq9IEznI'
-
-const playerList = [
-    // prompt('Player 1?'),
-    sessionStorage.tabID
-        ? sessionStorage.tabID
-        : (sessionStorage.tabID = uuid())
-    // prompt('Player 3?')
-]
 
 const WaitingRoom = () => {
     const [start, setStart] = useState(false)
     const [playerID, setPlayerId] = useState(sessionStorage.playerID || null)
     const [myPlayerList, setMyPlayerList] = useState([])
     const socket = socketIOClient('http://127.0.0.1:4001')
+
+    const syncToFirebase = () => {
+        const newGameState = initState(['Jack'])
+        db.collection('games')
+            .doc(GAME_ID)
+            .get()
+            .then(doc => console.log('game exists?', doc.exists))
+        db.collection('games')
+            .doc(GAME_ID)
+            .set({ state: initState(['Jack']) })
+            .then(() => console.log('initState synced to Firebase!'))
+            .catch(error => console.error('Error syncing to Firebase: ', error))
+    }
+
+    useEffect(syncToFirebase, [])
 
     useEffect(() => {
         // if no playerID in local storage
@@ -50,16 +57,21 @@ const WaitingRoom = () => {
         })
     }, [])
 
+    const handleStart = () => {
+        setStart(true)
+        sessionStorage.gameStarted = true
+    }
+
     return (
         <div className={'WaitingRoom'}>
             {!start && (
                 <React.Fragment>
                     <h1>You: {playerID}</h1>
                     {myPlayerList.length &&
-                        myPlayerList.map(p => {
-                            return <p>{p}</p>
+                        myPlayerList.map(playerID => {
+                            return <p key={playerID}>{playerID}</p>
                         })}
-                    <button onClick={() => setStart(true)}>START</button>
+                    <button onClick={handleStart}>START</button>
                 </React.Fragment>
             )}
             {start && <Game playerList={myPlayerList} GAME_ID={GAME_ID} />}

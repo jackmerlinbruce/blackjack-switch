@@ -22,9 +22,8 @@ io.on('connection', socket => {
     /* only adds players to the playerList 
     if they get replied from the client's
     local storage */
-    const playerID = uuid.v4()
+    const playerID = 'player-' + uuid.v4()
     socket.emit('getPlayerID', { playerID })
-    // console.log('New client connected', playerID)
     socket.on('reply', data => {
         console.log(data)
         if (!players.includes(data.playerID)) {
@@ -32,7 +31,10 @@ io.on('connection', socket => {
         }
         console.log('players', players)
     })
+    players = players.map(p => p)
     socket.emit('getAllPlayers', { players })
+
+    // console.log('New client connected', playerID)
     // socket.on('disconnect', () => console.log('Client disconnected', playerID))
 })
 
