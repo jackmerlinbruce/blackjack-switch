@@ -1,8 +1,9 @@
 import React from 'react'
-import WaitingRoom from './WaitingRoom'
+import WaitingRoom from './Containers/WaitingRoom'
+import Lobby from './Containers/Lobby'
 
 const App = () => {
-    return <WaitingRoom />
+    return <Lobby />
 }
 
 export default App

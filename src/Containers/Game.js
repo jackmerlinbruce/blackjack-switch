@@ -1,11 +1,11 @@
 import React, { useReducer, useEffect } from 'react'
 import './Game.css'
-import { getAllowedCards } from './Utils/cards'
-import { stateReducer } from './Utils/StateReducer'
-import { initState } from './Utils/initState'
-import Card from './Components/Card'
-import StateVisualiser from './Components/StateVisualiser'
-import { db } from './firebase'
+import { getAllowedCards } from '../Utils/cards'
+import { stateReducer } from '../Utils/StateReducer'
+import { initState } from '../Utils/initState'
+import Card from '../Components/Card'
+import StateVisualiser from '../Components/StateVisualiser'
+import { db } from '../firebase'
 
 const Game = ({ playerList, GAME_ID }) => {
     const [state, dispatch] = useReducer(stateReducer, initState(playerList))

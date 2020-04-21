@@ -6,8 +6,8 @@ to pass to <Game players={playerList} />
 import React, { useState, useEffect } from 'react'
 import Game from './Game'
 import socketIOClient from 'socket.io-client'
-import { initState } from './Utils/initState'
-import { db } from './firebase'
+import { initState } from '../Utils/initState'
+import { db } from '../firebase'
 
 const GAME_ID = 'WfF19APDbocNLq9IEznI'
 

@@ -16,23 +16,33 @@ const server = http.createServer(app)
 
 const io = socketIo(server)
 
-let players = []
+let currentPlayerIDs = []
 
 io.on('connection', socket => {
-    /* only adds players to the playerList 
-    if they get replied from the client's
-    local storage */
-    const playerID = 'player-' + uuid.v4()
-    socket.emit('getPlayerID', { playerID })
-    socket.on('reply', data => {
-        console.log(data)
-        if (!players.includes(data.playerID)) {
-            players.push(data.playerID)
-        }
-        console.log('players', players)
+    socket.emit('getPlayerID', {
+        playerID: socket.id
     })
-    players = players.map(p => p)
-    socket.emit('getAllPlayers', { players })
+
+    socket.on('replyWithPlayerID', data => {
+        if (!currentPlayerIDs.includes(data.playerID)) {
+            currentPlayerIDs.push(data.playerID)
+        }
+        console.log('players', currentPlayerIDs)
+    })
+
+    socket.broadcast.emit('currentPlayerIDs', { currentPlayerIDs })
+
+    socket.on('disconnect', () => console.log('Client disconnected', socket.id))
+
+    // socket.on('reply', data => {
+    //     console.log(data)
+    //     if (!players.includes(data.playerID)) {
+    //         players.push(data.playerID)
+    //     }
+    //     console.log('players', players)
+    // })
+    // players = players.map(p => p)
+    // socket.emit('getAllPlayers', { players })
 
     // console.log('New client connected', playerID)
     // socket.on('disconnect', () => console.log('Client disconnected', playerID))
