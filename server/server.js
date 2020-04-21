@@ -20,7 +20,7 @@ const io = socketIo(server)
  */
 
 let playerList = []
-let initState = require('./initState')
+let initState = require('./states/initState')
 
 function setAdmin(playerList) {
     playerList.sort((a, b) => {
@@ -35,7 +35,8 @@ function setAdmin(playerList) {
 function addPlayer(playerID, playerList) {
     playerList.push({
         playerID,
-        joined: new Date()
+        joined: new Date(),
+        isAdmin: false
     })
     return playerList
 }
@@ -44,6 +45,22 @@ function removePlayer(playerID, playerList) {
     return playerList.filter(p => {
         return p.playerID !== playerID
     })
+}
+
+function updateNextPlayer(state) {
+    const newPlayerIndex =
+        state.currentPlayerIndex + state.numEightSkips >=
+        state.playerList.length - 1
+            ? 0
+            : state.currentPlayerIndex + 1 + state.numEightSkips
+
+    return {
+        ...state,
+        isRunInPlay: false,
+        numEightSkips: 0,
+        currentPlayerIndex: newPlayerIndex,
+        currentPlayerID: state.playerList[newPlayerIndex].playerID
+    }
 }
 
 io.on('connection', socket => {
@@ -68,7 +85,15 @@ io.on('connection', socket => {
     // initiate start game sequence
     socket.on('start game', () => {
         console.log('game started by', playerID)
-        socket.emit('init state', initState(playerList))
+        io.emit('init state', initState(playerList))
+        io.emit('start game', { start: true })
+    })
+
+    // recieve and update new state
+    socket.on('update state', data => {
+        console.log('new state arrived')
+        console.log('calculating next player')
+        io.emit('update state', updateNextPlayer(data))
     })
 })
 

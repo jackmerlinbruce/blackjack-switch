@@ -19,7 +19,7 @@ const initState = (playerList = []) => {
     }
 
     // create empty hand for each player
-    state.playerList.forEach(p => (state['player--' + p.playerID] = []))
+    state.playerList.forEach(p => (state[p.playerID] = []))
 
     // set playerID to first player in playerList
     state.currentPlayerID = state.playerList.map(p => p.playerID)[0]

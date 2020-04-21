@@ -78,31 +78,16 @@ export const stateReducer = (state, action) => {
                     ? 0
                     : state.currentPlayerIndex + 1 + state.numEightSkips
 
-            console.log(
-                'ENDED GO of player',
-                state.currentPlayerIndex,
-                'next player ->',
-                newPlayerIndex
-            )
-            return {
+            const updatedState = {
                 ...state,
                 isRunInPlay: false,
                 numEightSkips: 0,
                 currentPlayerIndex: newPlayerIndex,
                 currentPlayerID: state.playerList[newPlayerIndex]
             }
-        case 'UPDATE_STATE':
-            /* TODO
-            Firebase state never recieves the updated playerIndex.
-            I think Firebase is being updated before playerIndex 
-            is incremented, and so when we switch to the next player,
-            we immediately revert to playerIndex '0'
 
-            Try testing if we force the playerIndex to update first,
-            before sending to Firebase.
-            */
-            return {
-                ...action.payload.state
-            }
+            return updatedState
+        case 'UPDATE_STATE':
+            return { ...action.payload }
     }
 }

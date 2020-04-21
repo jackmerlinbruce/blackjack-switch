@@ -2,15 +2,15 @@ import React, { useReducer, useEffect } from 'react'
 import './Game.css'
 import { getAllowedCards } from '../Utils/cards'
 import { stateReducer } from '../Utils/StateReducer'
-import { initState } from '../Utils/initState'
 import Card from '../Components/Card'
 import StateVisualiser from '../Components/StateVisualiser'
 import { db } from '../firebase'
 
-const Game = ({ playerList, GAME_ID }) => {
-    const [state, dispatch] = useReducer(stateReducer, initState(playerList))
+const Game = ({ initState, GAME_ID, socket }) => {
+    const [state, dispatch] = useReducer(stateReducer, initState)
 
     console.log(
+        state,
         state.currentPlayerIndex,
         "It's your turn",
         state.currentPlayerID
@@ -101,17 +101,6 @@ const Game = ({ playerList, GAME_ID }) => {
         document.title = state.deck.length
     })
 
-    // useEffect(() => {
-    //     // deal-on-load
-    //     state.playerList.forEach((p, i) => {
-    //         dispatch({
-    //             type: 'ADD_TO_HAND_OF',
-    //             payload: deal(7),
-    //             player: p
-    //         })
-    //     })
-    // }, [])
-
     const syncToFirebase = () => {
         db.collection('games')
             .doc(GAME_ID)
@@ -135,19 +124,18 @@ const Game = ({ playerList, GAME_ID }) => {
             })
     }
 
-    useEffect(() => {
-        if (state.currentPlayerID === sessionStorage.playerID) {
-            // if it's your turn, sync Firebase state
-            // with the local state
-            console.log("It's your turn, syncing TO Firebase")
-            syncToFirebase()
-        } else {
-            // if it ain't your turn, sync local state
-            // with the Firebase state
-            console.log('Not your turn, syncing FROM Firebase')
-            syncFromFirebase()
-        }
-    }, [state])
+    const sendToServer = () => {
+        socket.emit('update state', state)
+    }
+
+    const updateStateFromSocket = () => {
+        socket.on('update state', data => {
+            console.log(data)
+            dispatch({ type: 'UPDATE_STATE', payload: data })
+        })
+    }
+
+    useEffect(updateStateFromSocket, 0)
 
     return (
         <div className="Game">
@@ -160,7 +148,6 @@ const Game = ({ playerList, GAME_ID }) => {
             </button>
             <button
                 onClick={() => {
-                    // dispatch({ type: 'ADD_TO_HAND', payload: deal(7) })
                     dispatch({
                         type: 'ADD_TO_HAND_OF',
                         payload: deal(7),
@@ -207,9 +194,15 @@ const Game = ({ playerList, GAME_ID }) => {
             >
                 END GO
             </button>
+            <button onClick={sendToServer}>SEND TO SERVER</button>
             <br />
             {state.playerList.map(p => (
-                <p className={`player ${p === state.currentPlayerID}`}>{p}</p>
+                <p
+                    key={p.playerID}
+                    className={`player ${p.playerID === state.currentPlayerID}`}
+                >
+                    {p.playerID}
+                </p>
             ))}
         </div>
     )
