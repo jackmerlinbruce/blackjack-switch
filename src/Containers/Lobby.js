@@ -15,7 +15,7 @@ const Lobby = () => {
             console.log(data)
         })
         socket.on('current players', data => {
-            setPlayerList(data.playerList2)
+            setPlayerList(data.playerList)
             console.log('current players', data)
         })
     }
@@ -27,37 +27,49 @@ const Lobby = () => {
         }
     }
 
+    const handleGameStart = () => {
+        socket.emit('start game')
+        socket.on('init state', data => console.log(data))
+    }
+
     useEffect(onLoad, 0)
     useEffect(checkAdmin, [playerList])
 
     return (
-        <React.Fragment>
+        <div className={'Lobby'}>
             <h1>Lobby</h1>
             <h2 className={`${isAdmin ? 'isAdmin' : ''}`}>
                 Welcome: <em>{playerID}</em>
             </h2>
+
             {isAdmin ? (
-                <button>Start</button>
+                <button
+                    onClick={handleGameStart}
+                    disabled={playerList.length <= 1}
+                >
+                    Start
+                </button>
             ) : (
                 <p>Only the admin can start the game</p>
             )}
+
+            {playerList.length <= 1 ? (
+                <p>Wait for more players to join</p>
+            ) : null}
 
             <h3>Current Players:</h3>
             {playerList &&
                 playerList.map(p => {
                     return (
-                        <>
-                            <p
-                                className={`${p.isAdmin ? 'isAdmin' : ''}`}
-                                key={p.playerID}
-                            >
+                        <div key={p.playerID}>
+                            <p className={`${p.isAdmin ? 'isAdmin' : ''}`}>
                                 <em>{p.playerID}</em>
                             </p>
                             <br></br>
-                        </>
+                        </div>
                     )
                 })}
-        </React.Fragment>
+        </div>
     )
 }
 

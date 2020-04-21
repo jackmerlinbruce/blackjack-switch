@@ -7,61 +7,68 @@ const uuid = require('uuid')
 
 const port = process.env.PORT || 4001
 const index = require('./routes/index')
-
 const app = express()
 app.use(cors())
 app.use(index)
-
 const server = http.createServer(app)
-
 const io = socketIo(server)
 
-const playerList = {}
-let playerList2 = []
+/*
+ *
+ * The IO Server
+ *
+ */
 
-io.on('connection', socket => {
-    // set playerID
-    let playerID = socket.id
+let playerList = []
+let initState = require('./initState')
 
-    // add player to list
-    // set time joined
-    playerList[playerID] = {
-        joined: new Date(),
-        isAdmin: false
+function setAdmin(playerList) {
+    playerList.sort((a, b) => {
+        return a.joined - b.joined
+    })
+    if (playerList.length) {
+        playerList[0].isAdmin = true
     }
-    playerList2.push({
+    return playerList
+}
+
+function addPlayer(playerID, playerList) {
+    playerList.push({
         playerID,
         joined: new Date()
     })
+    return playerList
+}
 
-    // make earliest player the admin
-    playerList2.sort((a, b) => {
-        return a.joined - b.joined
+function removePlayer(playerID, playerList) {
+    return playerList.filter(p => {
+        return p.playerID !== playerID
     })
-    playerList2.length ? (playerList2[0].isAdmin = true) : null
+}
 
+io.on('connection', socket => {
+    let playerID = socket.id
+
+    // emit to all players1
+    socket.emit('new player', { playerID })
     console.log('new player', playerID)
 
-    socket.emit('new player', { playerID })
-    io.emit('current players', {
-        playerList,
-        playerList2
+    // emit to all players
+    playerList = addPlayer(playerID, playerList)
+    playerList = setAdmin(playerList)
+    io.emit('current players', { playerList })
+
+    // disconnect and remove player, reset admin
+    socket.on('disconnect', () => {
+        playerList = removePlayer(playerID, playerList)
+        playerList = setAdmin(playerList)
+        io.emit('current players', { playerList })
     })
 
-    socket.on('disconnect', () => {
-        delete playerList[playerID]
-        playerList2 = playerList2.filter(p => {
-            return p.playerID !== playerID
-        })
-        // make earliest player the admin
-        playerList2.sort((a, b) => {
-            return a.joined - b.joined
-        })
-        playerList2[0].isAdmin = true
-        io.emit('current players', {
-            playerList,
-            playerList2
-        })
+    // initiate start game sequence
+    socket.on('start game', () => {
+        console.log('game started by', playerID)
+        socket.emit('init state', initState(playerList))
     })
 })
 
