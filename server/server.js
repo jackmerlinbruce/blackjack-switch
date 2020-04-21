@@ -16,36 +16,53 @@ const server = http.createServer(app)
 
 const io = socketIo(server)
 
-let currentPlayerIDs = []
+const playerList = {}
+let playerList2 = []
 
 io.on('connection', socket => {
-    socket.emit('getPlayerID', {
-        playerID: socket.id
+    // set playerID
+    let playerID = socket.id
+
+    // add player to list
+    // set time joined
+    playerList[playerID] = {
+        joined: new Date(),
+        isAdmin: false
+    }
+    playerList2.push({
+        playerID,
+        joined: new Date()
     })
 
-    socket.on('replyWithPlayerID', data => {
-        if (!currentPlayerIDs.includes(data.playerID)) {
-            currentPlayerIDs.push(data.playerID)
-        }
-        console.log('players', currentPlayerIDs)
+    // make earliest player the admin
+    playerList2.sort((a, b) => {
+        return a.joined - b.joined
+    })
+    playerList2.length ? (playerList2[0].isAdmin = true) : null
+
+    console.log('new player', playerID)
+
+    socket.emit('new player', { playerID })
+    io.emit('current players', {
+        playerList,
+        playerList2
     })
 
-    socket.broadcast.emit('currentPlayerIDs', { currentPlayerIDs })
-
-    socket.on('disconnect', () => console.log('Client disconnected', socket.id))
-
-    // socket.on('reply', data => {
-    //     console.log(data)
-    //     if (!players.includes(data.playerID)) {
-    //         players.push(data.playerID)
-    //     }
-    //     console.log('players', players)
-    // })
-    // players = players.map(p => p)
-    // socket.emit('getAllPlayers', { players })
-
-    // console.log('New client connected', playerID)
-    // socket.on('disconnect', () => console.log('Client disconnected', playerID))
+    socket.on('disconnect', () => {
+        delete playerList[playerID]
+        playerList2 = playerList2.filter(p => {
+            return p.playerID !== playerID
+        })
+        // make earliest player the admin
+        playerList2.sort((a, b) => {
+            return a.joined - b.joined
+        })
+        playerList2[0].isAdmin = true
+        io.emit('current players', {
+            playerList,
+            playerList2
+        })
+    })
 })
 
 server.listen(port, () => console.log(`Listening on port ${port}`))
