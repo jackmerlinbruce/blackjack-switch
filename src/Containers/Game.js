@@ -151,16 +151,26 @@ const Game = ({ initState, GAME_ID, socket }) => {
             <h1>Blackjack</h1>
 
             <h3>Cards Played</h3>
+
+            <Card
+                faceUp={false}
+                isInHand={isYourGo}
+                callback={() => pickup(state.pickupAmount)}
+            />
+
             {state.played &&
                 state.played
                     .slice(state.played.length - 1, state.played.length)
-                    .map(card => <Card card={card} callback={playCard} />)}
+                    .map(card => (
+                        <Card faceUp={true} card={card} callback={playCard} />
+                    ))}
 
             <div className={'hand'}>
                 <h3>Hand of {state.nicknames[socket.id] || socket.id}</h3>
                 {state[socket.id] &&
                     state[socket.id].map(card => (
                         <Card
+                            faceUp={true}
                             card={card}
                             callback={playCard}
                             isInHand={isYourGo}
