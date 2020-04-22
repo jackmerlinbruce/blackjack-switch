@@ -6,10 +6,15 @@ const cors = require('cors')
 const uuid = require('uuid')
 
 const port = process.env.PORT || 4001
-const index = require('./routes/index')
 const app = express()
 app.use(cors())
-app.use(index)
+
+app.use(express.static('build'))
+
+app.get('/', (req, res) => {
+    res.send({ response: 'I am alive' }).status(200)
+})
+
 const server = http.createServer(app)
 const io = socketIo(server)
 
@@ -93,6 +98,7 @@ io.on('connection', socket => {
         io.emit('start game', { start: true })
     })
 
+    // update name changes in playerList
     socket.on('change name', data => {
         socket.nickname = data
         playerList.forEach(p => {
