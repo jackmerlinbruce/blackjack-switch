@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from 'react'
+import React, { useReducer, useEffect, useState } from 'react'
 import './Game.css'
 import { getAllowedCards } from '../Utils/cards'
 import { stateReducer } from '../Utils/StateReducer'
@@ -8,6 +8,7 @@ import { db } from '../firebase'
 
 const Game = ({ initState, GAME_ID, socket }) => {
     const [state, dispatch] = useReducer(stateReducer, initState)
+    const [isYourGo, setIsYourGo] = useState(false)
 
     console.log(
         state,
@@ -136,72 +137,89 @@ const Game = ({ initState, GAME_ID, socket }) => {
     }
 
     useEffect(updateStateFromSocket, 0)
+    useEffect(() => {
+        setIsYourGo(false)
+        if (state.currentPlayerID === socket.id) {
+            setIsYourGo(true)
+        }
+    }, [state.currentPlayerID])
 
     return (
-        <div className="Game">
+        <div className={`Game ${isYourGo ? 'yourGo' : ''}`}>
             <StateVisualiser state={state} />
 
             <h1>Blackjack</h1>
 
-            <button onClick={() => dispatch({ type: 'EMPTY_DECK' })}>
-                EMPTY DECK
-            </button>
-            <button
-                onClick={() => {
-                    dispatch({
-                        type: 'ADD_TO_HAND_OF',
-                        payload: deal(7),
-                        player: state.currentPlayerID
-                    })
-                }}
-            >
-                DEAL HAND
-            </button>
-            <button
-                onClick={() => {
-                    dispatch({
-                        type: 'PLAY_CARDS',
-                        payload: deal(1)
-                    })
-                }}
-            >
-                DEAL FIRST CARD
-            </button>
-            <button onClick={() => console.log(state.cardsAllowedIDs)}>
-                START
-            </button>
             <h3>Cards Played</h3>
             {state.played &&
                 state.played
                     .slice(state.played.length - 1, state.played.length)
                     .map(card => <Card card={card} callback={playCard} />)}
-            <h3>Hand of {state.currentPlayerID}</h3>
-            {state[state.currentPlayerID] &&
-                state[state.currentPlayerID].map(card => (
-                    <Card card={card} callback={playCard} isInHand={true} />
-                ))}
-            <br />
-            <button
-                onClick={() => pickup(state.pickupAmount)}
-                disabled={state.isRunInPlay}
-            >
-                PICK UP
-            </button>
-            <button
-                onClick={() => {
-                    dispatch({ type: 'END_GO' })
-                }}
-            >
-                END GO
-            </button>
-            <button onClick={sendToServer}>SEND TO SERVER</button>
+
+            <div className={'hand'}>
+                <h3>Hand of {state.nicknames[socket.id] || socket.id}</h3>
+                {state[socket.id] &&
+                    state[socket.id].map(card => (
+                        <Card
+                            card={card}
+                            callback={playCard}
+                            isInHand={isYourGo}
+                        />
+                    ))}
+                <br />
+
+                <div className={'playerControls'} hidden={!isYourGo}>
+                    <button onClick={() => dispatch({ type: 'EMPTY_DECK' })}>
+                        EMPTY DECK
+                    </button>
+                    <button
+                        onClick={() => {
+                            dispatch({
+                                type: 'ADD_TO_HAND_OF',
+                                payload: deal(7),
+                                player: state.currentPlayerID
+                            })
+                        }}
+                    >
+                        DEAL HAND
+                    </button>
+                    <button
+                        onClick={() => {
+                            dispatch({
+                                type: 'PLAY_CARDS',
+                                payload: deal(1)
+                            })
+                        }}
+                    >
+                        DEAL FIRST CARD
+                    </button>
+                    <button onClick={() => console.log(state.cardsAllowedIDs)}>
+                        START
+                    </button>
+                    <br />
+                    <button
+                        onClick={() => pickup(state.pickupAmount)}
+                        disabled={state.isRunInPlay}
+                    >
+                        PICK UP
+                    </button>
+                    <button
+                        onClick={() => {
+                            dispatch({ type: 'END_GO' })
+                        }}
+                    >
+                        END GO
+                    </button>
+                    <button onClick={sendToServer}>SEND TO SERVER</button>
+                </div>
+            </div>
             <br />
             {state.playerList.map(p => (
                 <p
                     key={p.playerID}
                     className={`player ${p.playerID === state.currentPlayerID}`}
                 >
-                    {p.playerID}
+                    {state.nicknames[p.playerID] || p.playerID}
                 </p>
             ))}
         </div>

@@ -66,7 +66,11 @@ function updateNextPlayer(state) {
 io.on('connection', socket => {
     let playerID = socket.id
 
-    // emit to all players1
+    //
+    // <Lobby />
+    //
+
+    // emit to all players
     socket.emit('new player', { playerID })
     console.log('new player', playerID)
 
@@ -88,6 +92,19 @@ io.on('connection', socket => {
         io.emit('init state', initState(playerList))
         io.emit('start game', { start: true })
     })
+
+    socket.on('change name', data => {
+        socket.nickname = data
+        playerList.forEach(p => {
+            if (p.playerID === socket.id) {
+                p.nickname = data
+            }
+        })
+    })
+
+    //
+    // <Game />
+    //
 
     // recieve and update new state
     socket.on('update state', data => {

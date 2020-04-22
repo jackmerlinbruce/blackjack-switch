@@ -5,6 +5,10 @@
     color: whitesmoke;
 }
 
+.Game.yourGo {
+    background-color: green;
+}
+
 .card {
     padding: 5px;
     margin: 0 auto;

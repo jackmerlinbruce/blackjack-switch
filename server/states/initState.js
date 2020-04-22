@@ -15,15 +15,20 @@ const initState = (playerList = []) => {
         queenMultiplier: 1,
         playerList,
         currentPlayerIndex: 0,
-        currentPlayerID: ''
+        currentPlayerID: '',
+        nicknames: {}
     }
 
     // create empty hand for each player
     state.playerList.forEach(p => (state[p.playerID] = []))
 
+    // append nickname map
+    state.playerList.forEach(p => (state.nicknames[p.playerID] = p.nickname))
+
     // set playerID to first player in playerList
     state.currentPlayerID = state.playerList.map(p => p.playerID)[0]
 
+    console.log(state)
     return state
 }
 

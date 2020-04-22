@@ -33,6 +33,11 @@ const Lobby = () => {
         }
     }
 
+    const handleNameChange = e => {
+        socket.emit('change name', e.target.value)
+        socket.on('name changed', data => console.log(data))
+    }
+
     const handleGameStart = () => {
         if (isAdmin) {
             socket.emit('start game')
@@ -44,7 +49,6 @@ const Lobby = () => {
     useEffect(checkAdmin, [playerList])
     useEffect(() => {
         if (Object.keys(initState).length) {
-            console.trace(initState)
             setStart(true)
         }
     }, [initState])
@@ -55,8 +59,13 @@ const Lobby = () => {
                 <div className={'Lobby'}>
                     <h1>Lobby</h1>
                     <h2 className={`${isAdmin ? 'isAdmin' : ''}`}>
-                        Welcome: <em>{playerID}</em>
+                        Welcome: <em>{socket.nickname || socket.id}</em>
                     </h2>
+                    <input
+                        onInput={e => handleNameChange(e)}
+                        type={'text'}
+                        placeholder={"What's your name?"}
+                    ></input>
 
                     {isAdmin ? (
                         <button
