@@ -1,10 +1,18 @@
 import React from 'react'
+import './Card.css'
+import { useSpring, animated } from 'react-spring'
 
 const Card = props => {
+    const spring = useSpring({
+        opacity: 1,
+        transform: 'scale(1)',
+        from: { opacity: 0, transform: 'scale(0)' }
+    })
+
     return (
         <React.Fragment>
             {props.faceUp && (
-                <div
+                <animated.div
                     className={props.isInHand ? 'card inHand' : 'card'}
                     id={props.card.id}
                     key={props.card.id}
@@ -13,6 +21,7 @@ const Card = props => {
                             ? () => props.callback(props.card.id)
                             : null
                     }
+                    style={spring}
                 >
                     <img
                         src={
@@ -23,19 +32,20 @@ const Card = props => {
                         }
                         alt="card"
                     ></img>
-                </div>
+                </animated.div>
             )}
 
             {!props.faceUp && (
-                <div
-                    className={props.isInHand ? 'card inHand' : 'card'}
+                <animated.div
+                    className={`card ${props.isIcon ? 'icon' : ''}`}
                     onClick={props.isInHand ? props.callback : null}
+                    style={spring}
                 >
                     <img
                         src={process.env.PUBLIC_URL + 'Cards/back-teal.png'}
                         alt="card"
                     ></img>
-                </div>
+                </animated.div>
             )}
         </React.Fragment>
     )

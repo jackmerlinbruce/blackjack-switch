@@ -1,5 +1,12 @@
 const getDeck = require('./getDeck')
 
+const deal = (n, state) => {
+    const dealtCards = state.deck.slice(0, n)
+    const updatedDeck = state.deck.slice(n, state.deck.length)
+    state.deck = updatedDeck
+    return dealtCards
+}
+
 const initState = (playerList = []) => {
     let state = {
         deck: getDeck(),
@@ -21,6 +28,12 @@ const initState = (playerList = []) => {
 
     // create empty hand for each player
     state.playerList.forEach(p => (state[p.playerID] = []))
+
+    // deal 7 cards to each player's hand
+    state.playerList.forEach(p => (state[p.playerID] = deal(7, state)))
+
+    // deal 1 card to the CARDS PLAYED PILE
+    state.played = deal(1, state)
 
     // append nickname map
     state.playerList.forEach(p => (state.nicknames[p.playerID] = p.nickname))

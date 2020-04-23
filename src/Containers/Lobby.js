@@ -58,7 +58,7 @@ const Lobby = () => {
         <div>
             {!start && (
                 <div className={'Lobby'}>
-                    <h1>Lobby</h1>
+                    <h1>Pickup Or Play</h1>
                     <h2 className={`${isAdmin ? 'isAdmin' : ''}`}>
                         Welcome: <em>{socket.nickname || socket.id}</em>
                     </h2>

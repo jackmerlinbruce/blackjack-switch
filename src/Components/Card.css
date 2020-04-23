@@ -1,0 +1,19 @@
+.card {
+    padding: 5px;
+    margin: 0 auto;
+    display: inline-block;
+    border-radius: 10px;
+}
+.card img {
+    width: 70px;
+}
+.card.icon {
+    padding: 2px;
+}
+.card.icon img {
+    width: 20px;
+}
+.card.inHand:hover {
+    background-color: rgba(245, 245, 245, 0.253);
+    cursor: pointer;
+}

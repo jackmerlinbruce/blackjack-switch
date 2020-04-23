@@ -4,54 +4,46 @@
     max-width: 1000px;
     color: whitesmoke;
 }
-
 .Game.yourGo {
-    background-color: green;
+    background-color: rgba(0, 128, 0, 0.445);
 }
 
-.card {
-    padding: 5px;
-    margin: 0 auto;
-    background-color: rgba(245, 245, 245, 0.096);
-    display: inline-block;
-    border-radius: 10px;
-}
-.card img {
-    width: 70px;
-}
-.card.inHand:hover {
-    background-color: rgba(245, 245, 245, 0.253);
-    cursor: pointer;
+.playerList {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 .player {
     opacity: 0.4;
     display: inline-block;
     padding: 10px;
 }
-.player.true {
+.player p {
+    margin: 0px;
+}
+.player.isYourGo {
     opacity: 1;
     font-weight: 900;
-    background-color: rgba(245, 245, 245, 0.096);
+    background-color: rgb(43, 43, 43);
     border-radius: 10px;
 }
-.state {
-    background-color: aliceblue;
-    border-radius: 10px;
+
+.hand {
+    margin-top: 50px;
 }
-.state * {
-    display: inline-block;
-    padding: 10px;
-    margin: 10px;
-    opacity: 0.4;
-    color: black;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+
+.example-enter {
+    opacity: 0.01;
 }
-.state p.true {
-    color: green;
-    background-color: rgba(0, 255, 0, 0.2);
+.example-enter.example-enter-active {
+    opacity: 1;
+    transition: opacity 500ms ease-in;
 }
-.state p.false {
-    color: red;
-    background-color: rgba(255, 0, 0, 0.2);
+.example-leave {
+    opacity: 1;
+}
+.example-leave.example-leave-active {
+    opacity: 0.01;
+    transition: opacity 300ms ease-in;
 }

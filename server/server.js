@@ -1,11 +1,9 @@
 const express = require('express')
 const http = require('http')
 const socketIo = require('socket.io')
-const axios = require('axios')
 const cors = require('cors')
-const uuid = require('uuid')
 
-const port = process.env.PORT || 8080 || 4001
+const port = process.env.PORT || 8080
 const app = express()
 app.use(cors())
 

@@ -2,9 +2,14 @@ import React, { useReducer, useEffect, useState } from 'react'
 import './Game.css'
 import { getAllowedCards } from '../Utils/cards'
 import { stateReducer } from '../Utils/StateReducer'
-import Card from '../Components/Card'
-import StateVisualiser from '../Components/StateVisualiser'
 import { db } from '../firebase'
+
+import StateVisualiser from '../Components/StateVisualiser'
+import Card from '../Components/Card'
+import EndGoBtn from '../Components/EndGoBtn'
+import PickupBtn from '../Components/PickupBtn'
+
+import { Transition } from 'react-spring/renderprops'
 
 const Game = ({ initState, socket }) => {
     const [state, dispatch] = useReducer(stateReducer, initState)
@@ -123,30 +128,37 @@ const Game = ({ initState, socket }) => {
 
     return (
         <div className={`Game ${isYourGo ? 'yourGo' : ''}`}>
-            <StateVisualiser state={state} />
-
-            <h1>Blackjack</h1>
+            {/*<StateVisualiser state={state} />*/}
+            {/*<DevTools />*/}
 
             <h3>Cards Played</h3>
 
-            <Card
-                faceUp={false}
-                isInHand={isYourGo}
-                callback={() => pickup(state.pickupAmount)}
-            />
+            <div className={'playArea'}>
+                <Card
+                    faceUp={false}
+                    isInHand={isYourGo}
+                    callback={() => pickup(state.pickupAmount)}
+                />
 
-            {state.played &&
-                state.played
-                    .slice(state.played.length - 1, state.played.length)
-                    .map(card => (
-                        <Card faceUp={true} card={card} callback={playCard} />
-                    ))}
+                {state.played &&
+                    state.played
+                        .slice(state.played.length - 1, state.played.length)
+                        .map(card => (
+                            <Card
+                                key={card.id}
+                                faceUp={true}
+                                card={card}
+                                callback={playCard}
+                            />
+                        ))}
+            </div>
 
             <div className={'hand'}>
-                <h3>Hand of {state.nicknames[socket.id] || socket.id}</h3>
+                <h3>Your Hand {state.nicknames[socket.id] || socket.id}</h3>
                 {state[socket.id] &&
                     state[socket.id].map(card => (
                         <Card
+                            key={card.id}
                             faceUp={true}
                             card={card}
                             callback={playCard}
@@ -154,61 +166,46 @@ const Game = ({ initState, socket }) => {
                         />
                     ))}
                 <br />
-
-                <div className={'playerControls'} hidden={!isYourGo}>
-                    <button onClick={() => dispatch({ type: 'EMPTY_DECK' })}>
-                        EMPTY DECK
-                    </button>
-                    <button
-                        onClick={() => {
-                            dispatch({
-                                type: 'ADD_TO_HAND_OF',
-                                payload: deal(7),
-                                player: state.currentPlayerID
-                            })
-                        }}
-                    >
-                        DEAL HAND
-                    </button>
-                    <button
-                        onClick={() => {
-                            dispatch({
-                                type: 'PLAY_CARDS',
-                                payload: deal(1)
-                            })
-                        }}
-                    >
-                        DEAL FIRST CARD
-                    </button>
-                    <button onClick={() => console.log(state.cardsAllowedIDs)}>
-                        START
-                    </button>
-                    <br />
-                    <button
-                        onClick={() => pickup(state.pickupAmount)}
-                        disabled={state.isRunInPlay}
-                    >
-                        PICK UP
-                    </button>
-                    <button
-                        onClick={() => {
-                            dispatch({ type: 'END_GO' })
-                        }}
-                    >
-                        END GO
-                    </button>
-                    <button onClick={sendToServer}>SEND TO SERVER</button>
-                </div>
             </div>
-            <br />
-            {state.playerList.map(p => (
-                <p
-                    key={p.playerID}
-                    className={`player ${p.playerID === state.currentPlayerID}`}
-                >
-                    {state.nicknames[p.playerID] || p.playerID}
-                </p>
-            ))}
+
+            <div className={'playerControls'} hidden={!isYourGo}>
+                <PickupBtn
+                    pickupAmount={state.pickupAmount}
+                    callback={() => pickup(state.pickupAmount)}
+                    disabled={state.isRunInPlay}
+                />
+                <EndGoBtn callback={sendToServer} />
+            </div>
+
+            <div className={'playerList'}>
+                {state.playerList.map(p => (
+                    <div
+                        key={p.playerID}
+                        className={`player ${
+                            p.playerID === state.currentPlayerID
+                                ? 'isYourGo'
+                                : ''
+                        }`}
+                    >
+                        {state[p.playerID].length ? (
+                            state[p.playerID].map((card, i) => {
+                                return (
+                                    <Card
+                                        key={i}
+                                        faceUp={false}
+                                        isInHand={isYourGo}
+                                        isIcon={true}
+                                    />
+                                )
+                            })
+                        ) : (
+                            <p>FINISHES ON NEXT TURN!</p>
+                        )}
+                        <br />
+                        <p>{state.nicknames[p.playerID] || p.playerID}</p>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }

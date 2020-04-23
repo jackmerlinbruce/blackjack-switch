@@ -1,0 +1,21 @@
+.state {
+    background-color: aliceblue;
+    border-radius: 10px;
+}
+.state * {
+    display: inline-block;
+    padding: 10px;
+    margin: 10px;
+    opacity: 0.4;
+    color: black;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+.state p.true {
+    color: green;
+    background-color: rgba(0, 255, 0, 0.2);
+}
+.state p.false {
+    color: red;
+    background-color: rgba(255, 0, 0, 0.2);
+}
