@@ -3,7 +3,9 @@ import socketIOClient from 'socket.io-client'
 import Game from './Game'
 import './Lobby.css'
 
-const socket = socketIOClient('http://127.0.0.1:4001')
+const socket = socketIOClient(
+    process.env.REACT_APP_SOCKET_ENDPOINT || 'http://127.0.0.1:8080'
+) // http://127.0.0.1:8080 //'http://62c207cd.ngrok.io'
 const GAME_ID = 'WfF19APDbocNLq9IEznI'
 
 const Lobby = () => {

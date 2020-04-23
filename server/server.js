@@ -5,7 +5,7 @@ const axios = require('axios')
 const cors = require('cors')
 const uuid = require('uuid')
 
-const port = process.env.PORT || 4001
+const port = process.env.PORT || 8080 || 4001
 const app = express()
 app.use(cors())
 
@@ -121,3 +121,11 @@ io.on('connection', socket => {
 })
 
 server.listen(port, () => console.log(`Listening on port ${port}`))
+
+// const ngrok = require('ngrok')
+
+// async function runNgrok() {
+//     const url = await ngrok.connect({ addr: 8080 })
+// }
+
+// runNgrok()

@@ -6,7 +6,7 @@ The time elapsed is modulated by the number of POWER cards
 This gives other players a glimpse into what you might be carrying
 And will make you want to play fast
 
-Add multiple decks for MASSIV 1000 card pickups
+Add multiple decks for MASSIVE 1000 card pickups
 
 Add scoring points for pickups.
 Does game end when people create n amount of pickups
