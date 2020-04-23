@@ -23,14 +23,15 @@ const initState = (playerList = []) => {
         playerList,
         currentPlayerIndex: 0,
         currentPlayerID: '',
-        nicknames: {}
+        nicknames: {},
+        potentialWinners: []
     }
 
     // create empty hand for each player
     state.playerList.forEach(p => (state[p.playerID] = []))
 
     // deal 7 cards to each player's hand
-    state.playerList.forEach(p => (state[p.playerID] = deal(7, state)))
+    state.playerList.forEach(p => (state[p.playerID] = deal(1, state)))
 
     // deal 1 card to the CARDS PLAYED PILE
     state.played = deal(1, state)
@@ -41,7 +42,6 @@ const initState = (playerList = []) => {
     // set playerID to first player in playerList
     state.currentPlayerID = state.playerList.map(p => p.playerID)[0]
 
-    console.log(state)
     return state
 }
 

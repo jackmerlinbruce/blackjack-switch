@@ -39,7 +39,8 @@ function addPlayer(playerID, playerList) {
     playerList.push({
         playerID,
         joined: new Date(),
-        isAdmin: false
+        isAdmin: false,
+        isPotentialWinner: false
     })
     return playerList
 }
@@ -50,19 +51,23 @@ function removePlayer(playerID, playerList) {
     })
 }
 
-function updateNextPlayer(state) {
+function updateState(data) {
+    const newWinners = data.state.playerList.forEach(p => {
+        p.isPotentialWinner = !data.state[p.playerID].length ? true : false
+    })
+
     const newPlayerIndex =
-        state.currentPlayerIndex + state.numEightSkips >=
-        state.playerList.length - 1
+        data.state.currentPlayerIndex + data.state.numEightSkips >=
+        data.state.playerList.length - 1
             ? 0
-            : state.currentPlayerIndex + 1 + state.numEightSkips
+            : data.state.currentPlayerIndex + 1 + data.state.numEightSkips
 
     return {
-        ...state,
+        ...data.state,
         isRunInPlay: false,
         numEightSkips: 0,
         currentPlayerIndex: newPlayerIndex,
-        currentPlayerID: state.playerList[newPlayerIndex].playerID
+        currentPlayerID: data.state.playerList[newPlayerIndex].playerID
     }
 }
 
@@ -112,9 +117,11 @@ io.on('connection', socket => {
 
     // recieve and update new state
     socket.on('update state', data => {
-        console.log('new state arrived')
-        console.log('calculating next player')
-        io.emit('update state', updateNextPlayer(data))
+        console.log('new state arrived, calculating next player')
+        io.emit('update state', updateState(data))
+    })
+    socket.on('announce winner', id => {
+        socket.broadcast.emit('announce winner', id)
     })
 })
 

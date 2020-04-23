@@ -27,9 +27,10 @@ const EndGoBtn = props => {
                 aria-label="add"
                 className={classes.margin}
                 onClick={props.callback}
+                disabled={props.disabled}
             >
                 <NavigateNextIcon className={classes.extendedIcon} />
-                END GO
+                PLAY
             </Fab>
         </div>
     )

@@ -8,19 +8,20 @@ import StateVisualiser from '../Components/StateVisualiser'
 import Card from '../Components/Card'
 import EndGoBtn from '../Components/EndGoBtn'
 import PickupBtn from '../Components/PickupBtn'
-
-import { Transition } from 'react-spring/renderprops'
+import WinLose from '../Components/WinLose'
 
 const Game = ({ initState, socket }) => {
     const [state, dispatch] = useReducer(stateReducer, initState)
     const [isYourGo, setIsYourGo] = useState(false)
+    const [isWinner, setIsWinner] = useState(null)
+    const [gameInProgress, setGameInProgress] = useState(true)
 
-    console.log(
-        state,
-        state.currentPlayerIndex,
-        "It's your turn",
-        state.currentPlayerID
-    )
+    // console.log(
+    //     state,
+    //     state.currentPlayerIndex,
+    //     "It's your turn",
+    //     state.currentPlayerID
+    // )
 
     const deal = n => {
         // TODO: dealtCards returns before dispatch()
@@ -107,18 +108,34 @@ const Game = ({ initState, socket }) => {
         document.title = state.deck.length
     })
 
-    const sendToServer = () => {
-        socket.emit('update state', state)
+    const sendStateToServer = () => {
+        socket.emit('update state', { state })
+
+        // if you end your turn with zero cards...
+        const you = state.playerList.filter(p => p.playerID === socket.id)[0]
+        if (you.isPotentialWinner) {
+            you.isPotentialWinner = !state[socket.id].length ? true : false // enforce that local hand really is zero (maybe different from state)
+            if (you.isPotentialWinner) {
+                socket.emit('announce winner', socket.id)
+                setIsWinner(true)
+                setGameInProgress(false)
+            }
+        }
     }
 
-    const updateStateFromSocket = () => {
+    const updateStateFromServer = () => {
         socket.on('update state', data => {
             console.log(data)
             dispatch({ type: 'UPDATE_STATE', payload: data })
         })
+
+        socket.on('announce winner', id => {
+            setIsWinner(false)
+            setGameInProgress(false)
+        })
     }
 
-    useEffect(updateStateFromSocket, 0)
+    useEffect(updateStateFromServer, 0)
     useEffect(() => {
         setIsYourGo(false)
         if (state.currentPlayerID === socket.id) {
@@ -130,9 +147,17 @@ const Game = ({ initState, socket }) => {
         <div className={`Game ${isYourGo ? 'yourGo' : ''}`}>
             {/*<StateVisualiser state={state} />*/}
             {/*<DevTools />*/}
-
+            <button
+                onClick={() => {
+                    dispatch({
+                        type: 'PLAY_CARDS',
+                        payload: deal(1)
+                    })
+                }}
+            >
+                DEAL FIRST CARD
+            </button>
             <h3>Cards Played</h3>
-
             <div className={'playArea'}>
                 <Card
                     faceUp={false}
@@ -152,7 +177,6 @@ const Game = ({ initState, socket }) => {
                             />
                         ))}
             </div>
-
             <div className={'hand'}>
                 <h3>Your Hand {state.nicknames[socket.id] || socket.id}</h3>
                 {state[socket.id] &&
@@ -167,16 +191,19 @@ const Game = ({ initState, socket }) => {
                     ))}
                 <br />
             </div>
-
             <div className={'playerControls'} hidden={!isYourGo}>
                 <PickupBtn
                     pickupAmount={state.pickupAmount}
-                    callback={() => pickup(state.pickupAmount)}
+                    callback={() => {
+                        pickup(state.pickupAmount)
+                    }}
                     disabled={state.isRunInPlay}
                 />
-                <EndGoBtn callback={sendToServer} />
+                <EndGoBtn
+                    callback={sendStateToServer}
+                    disabled={state.pickupAmount > 1 && !state.isRunInPlay}
+                />
             </div>
-
             <div className={'playerList'}>
                 {state.playerList.map(p => (
                     <div
@@ -206,6 +233,7 @@ const Game = ({ initState, socket }) => {
                     </div>
                 ))}
             </div>
+            {!gameInProgress && <WinLose isWinner={isWinner} />}
         </div>
     )
 }
