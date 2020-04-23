@@ -5,8 +5,7 @@ import './Lobby.css'
 
 const socket = socketIOClient(
     process.env.REACT_APP_SOCKET_ENDPOINT || 'http://127.0.0.1:8080'
-) // http://127.0.0.1:8080 //'http://62c207cd.ngrok.io'
-const GAME_ID = 'WfF19APDbocNLq9IEznI'
+)
 
 const Lobby = () => {
     const [playerID, setPlayerId] = useState(false)
@@ -103,9 +102,7 @@ const Lobby = () => {
                 </div>
             )}
 
-            {start && (
-                <Game initState={initState} GAME_ID={GAME_ID} socket={socket} />
-            )}
+            {start && <Game initState={initState} socket={socket} />}
         </div>
     )
 }

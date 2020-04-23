@@ -121,11 +121,3 @@ io.on('connection', socket => {
 })
 
 server.listen(port, () => console.log(`Listening on port ${port}`))
-
-// const ngrok = require('ngrok')
-
-// async function runNgrok() {
-//     const url = await ngrok.connect({ addr: 8080 })
-// }
-
-// runNgrok()

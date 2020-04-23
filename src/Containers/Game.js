@@ -6,7 +6,7 @@ import Card from '../Components/Card'
 import StateVisualiser from '../Components/StateVisualiser'
 import { db } from '../firebase'
 
-const Game = ({ initState, GAME_ID, socket }) => {
+const Game = ({ initState, socket }) => {
     const [state, dispatch] = useReducer(stateReducer, initState)
     const [isYourGo, setIsYourGo] = useState(false)
 
@@ -101,29 +101,6 @@ const Game = ({ initState, GAME_ID, socket }) => {
     useEffect(() => {
         document.title = state.deck.length
     })
-
-    const syncToFirebase = () => {
-        db.collection('games')
-            .doc(GAME_ID)
-            .set({ state: state })
-            .then(() =>
-                console.log(
-                    'Firebase state successfully synced! Current player is',
-                    state.currentPlayerIndex
-                )
-            )
-            .catch(error => console.error('Error syncing to Firebase: ', error))
-    }
-
-    const syncFromFirebase = () => {
-        db.collection('games')
-            .doc(GAME_ID)
-            .get()
-            .then(res => {
-                console.log('syncing FROM firebase data', res.data())
-                dispatch({ type: 'UPDATE_STATE', payload: res.data() })
-            })
-    }
 
     const sendToServer = () => {
         socket.emit('update state', state)
